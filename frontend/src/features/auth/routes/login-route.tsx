@@ -35,6 +35,16 @@ export function LoginRoute() {
     setIsSubmitting(true);
     try {
       await signInWithEmail(values.email, values.password);
+      
+      // Verify token with backend
+      try {
+        await verifyToken();
+        console.log("[auth] Backend verification successful");
+      } catch (backendError) {
+        console.warn("[auth] Backend verification failed:", backendError);
+        // Continue anyway - frontend auth succeeded
+      }
+      
       navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error("[auth] login failed", error);
@@ -53,6 +63,16 @@ export function LoginRoute() {
     setIsSubmitting(true);
     try {
       await signInWithGoogle();
+      
+      // Verify token with backend
+      try {
+        await verifyToken();
+        console.log("[auth] Backend verification successful");
+      } catch (backendError) {
+        console.warn("[auth] Backend verification failed:", backendError);
+        // Continue anyway - frontend auth succeeded
+      }
+      
       navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error("[auth] google login failed", error);
