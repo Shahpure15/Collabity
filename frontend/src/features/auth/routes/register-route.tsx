@@ -8,6 +8,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { registerWithEmail, signInWithGoogle } from "@/lib/firebase";
+import { createUserProfile } from "@/lib/user-service";
 
 const registerSchema = z
   .object({
@@ -42,8 +43,16 @@ export function RegisterRoute() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await registerWithEmail(values.email, values.password);
-      navigate("/onboarding", { replace: true });
+      const userCredential = await registerWithEmail(values.email, values.password);
+      
+      // Create user profile in Firestore
+      await createUserProfile(userCredential.user.uid, {
+        email: values.email,
+        name: values.name,
+      });
+      
+      console.log("[auth] User profile created successfully");
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       console.error("[auth] registration failed", err);
       if (err instanceof Error) {
@@ -60,8 +69,19 @@ export function RegisterRoute() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await signInWithGoogle();
-      navigate("/onboarding", { replace: true });
+      const userCredential = await signInWithGoogle();
+      
+      if (userCredential) {
+        // Create/update user profile in Firestore
+        await createUserProfile(userCredential.user.uid, {
+          email: userCredential.user.email!,
+          name: userCredential.user.displayName || undefined,
+          photoURL: userCredential.user.photoURL || undefined,
+        });
+      }
+      
+      console.log("[auth] Google sign-up successful");
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       console.error("[auth] google register failed", err);
       if (err instanceof Error) {

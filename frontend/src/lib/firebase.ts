@@ -8,6 +8,9 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
 } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
@@ -103,4 +106,52 @@ export async function resetPassword(email: string) {
   }
 
   return sendPasswordResetEmail(instance, email);
+}
+
+/**
+ * Send a sign-in link to the user's email (passwordless authentication)
+ */
+export async function sendSignInLink(email: string) {
+  const instance = getFirebaseAuth();
+  if (!instance) {
+    throw new Error("Firebase config missing. Provide Vite env vars to enable auth.");
+  }
+
+  const actionCodeSettings = {
+    // URL where users will be redirected after clicking the link
+    url: `${window.location.origin}/auth/verify-email`,
+    handleCodeInApp: true,
+  };
+
+  await sendSignInLinkToEmail(instance, email, actionCodeSettings);
+  
+  // Save email to localStorage so we can verify on the same device
+  window.localStorage.setItem('emailForSignIn', email);
+}
+
+/**
+ * Check if the current URL is a sign-in link
+ */
+export function isEmailLink(url: string = window.location.href): boolean {
+  const instance = getFirebaseAuth();
+  if (!instance) return false;
+  
+  return isSignInWithEmailLink(instance, url);
+}
+
+/**
+ * Complete sign-in with email link
+ */
+export async function completeEmailLinkSignIn(email: string, url: string = window.location.href) {
+  const instance = getFirebaseAuth();
+  if (!instance) {
+    throw new Error("Firebase config missing. Provide Vite env vars to enable auth.");
+  }
+
+  const result = await signInWithEmailLink(instance, email, url);
+  
+  // Clear email from storage after successful sign-in
+  window.localStorage.removeItem('emailForSignIn');
+  
+  return result;
 }

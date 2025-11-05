@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signInWithEmail, signInWithGoogle } from "@/lib/firebase";
 import { verifyToken } from "@/lib/api";
+import { createUserProfile } from "@/lib/user-service";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -34,7 +35,14 @@ export function LoginRoute() {
     setAuthError(null);
     setIsSubmitting(true);
     try {
-      await signInWithEmail(values.email, values.password);
+      const userCredential = await signInWithEmail(values.email, values.password);
+      
+      // Ensure user profile exists in Firestore
+      await createUserProfile(userCredential.user.uid, {
+        email: userCredential.user.email!,
+        name: userCredential.user.displayName || undefined,
+        photoURL: userCredential.user.photoURL || undefined,
+      });
       
       // Verify token with backend
       try {
@@ -62,7 +70,16 @@ export function LoginRoute() {
     setAuthError(null);
     setIsSubmitting(true);
     try {
-      await signInWithGoogle();
+      const userCredential = await signInWithGoogle();
+      
+      if (userCredential) {
+        // Ensure user profile exists in Firestore
+        await createUserProfile(userCredential.user.uid, {
+          email: userCredential.user.email!,
+          name: userCredential.user.displayName || undefined,
+          photoURL: userCredential.user.photoURL || undefined,
+        });
+      }
       
       // Verify token with backend
       try {
@@ -147,23 +164,35 @@ export function LoginRoute() {
             )}
           </Button>
         </form>
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="relative text-center text-xs uppercase tracking-[0.35em] text-muted-foreground">
             <span className="bg-white px-4 dark:bg-transparent">or</span>
             <span className="absolute inset-x-0 top-1/2 -z-10 h-px bg-border" />
           </div>
-          <Button
-            className="w-full"
-            disabled={isSubmitting}
-            onClick={handleGoogleLogin}
-            type="button"
-            variant="outline"
-          >
-            <GoogleIcon className="mr-2 h-4 w-4" /> Continue with Google
-          </Button>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Button
+              className="w-full"
+              disabled={isSubmitting}
+              onClick={handleGoogleLogin}
+              type="button"
+              variant="outline"
+            >
+              <GoogleIcon className="mr-2 h-4 w-4" /> Google
+            </Button>
+            <Link to="/auth/email-link" className="w-full">
+              <Button
+                className="w-full"
+                disabled={isSubmitting}
+                type="button"
+                variant="outline"
+              >
+                Email Link
+              </Button>
+            </Link>
+          </div>
         </div>
         <div className="rounded-2xl border border-white/50 bg-white/60 p-4 text-sm text-muted-foreground shadow-inner dark:border-white/10 dark:bg-slate-900/70">
-          🔐 Firebase auth ready. Configure <code className="rounded bg-muted px-1">VITE_FIREBASE_*</code> variables in <code className="rounded bg-muted px-1">.env</code> to enable login.
+          💡 <strong>New here?</strong> Create an account or sign in with Google to get started!
         </div>
       </div>
     </div>

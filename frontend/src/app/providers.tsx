@@ -3,6 +3,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState } from "react";
 
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { AuthProvider } from "@/features/auth/auth-context";
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -14,7 +15,9 @@ export function AppProviders({ children }: AppProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </ThemeProvider>
       {import.meta.env.DEV ? (
         <ReactQueryDevtools initialIsOpen={false} />
