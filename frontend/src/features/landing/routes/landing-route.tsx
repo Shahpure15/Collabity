@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LogoMark, WordMark } from "@/features/misc/logo";
+import { LogoMark } from "@/features/misc/logo";
 import { formatDate } from "@/lib/utils";
 import type { Opportunity, ServiceTile } from "@/lib/types";
 
@@ -98,38 +98,14 @@ export function LandingRoute() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <GradientBackdrop />
-      <header className="relative z-10">
-        <nav className="container flex items-center justify-between py-6">
-          <WordMark />
-          <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
-            <a className="hover:text-foreground" href="#features">
-              Features
-            </a>
-            <a className="hover:text-foreground" href="#opportunities">
-              Opportunities
-            </a>
-            <a className="hover:text-foreground" href="#why">
-              Why Collabity
-            </a>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button asChild variant="ghost">
-              <Link to="/auth/login">Log in</Link>
-            </Button>
-            <Button asChild variant="gradient">
-              <Link to="/auth/register">Join the beta</Link>
-            </Button>
-          </div>
-        </nav>
-      </header>
-  <main className="relative z-10 container space-y-32 pb-24 pt-12">
+  <main className="relative z-10 container space-y-32 pb-24 pt-20">
         <HeroSection />
         <FeatureShowcase />
         <OpportunitySection opportunityGroups={opportunityGroups} />
         <WhyCollabitySection />
         <CallToAction />
       </main>
-      <footer className="relative z-10 border-t border-white/10 bg-white/20 py-10 backdrop-blur lg:py-12">
+  <footer className="relative z-10 border-t border-white/10 bg-white/20 py-10 backdrop-blur lg:py-12">
         <div className="container flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground md:flex-row">
           <span>© {new Date().getFullYear()} Collabity. Built for student builders.</span>
           <div className="flex items-center gap-6">

@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 
+import { AppShell } from "@/app/app-shell";
 import { AuthLayout } from "@/features/auth/routes/auth-layout";
 import { LoginRoute } from "@/features/auth/routes/login-route";
 import { RegisterRoute } from "@/features/auth/routes/register-route";
@@ -12,17 +13,21 @@ import { DiscoverRoute } from "@/features/discover/routes/discover-route";
 
 export const router = createBrowserRouter([
   {
-    id: "root",
-    path: "/",
-    element: <LandingRoute />,
-  },
-  {
-    path: "/dashboard",
-    element: <DashboardRoute />,
-  },
-  {
-    path: "/discover",
-    element: <DiscoverRoute />,
+    element: <AppShell />,
+    children: [
+      {
+        index: true,
+        element: <LandingRoute />,
+      },
+      {
+        path: "dashboard",
+        element: <DashboardRoute />,
+      },
+      {
+        path: "discover",
+        element: <DiscoverRoute />,
+      },
+    ],
   },
   {
     path: "/auth",
