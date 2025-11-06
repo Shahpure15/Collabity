@@ -78,18 +78,18 @@ export function DiscoverRoute() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 pb-20 lg:pb-0">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-gradient-to-b from-white/90 via-sky-100/40 to-transparent blur-2xl dark:from-slate-950/90 dark:via-slate-900/70" />
 
-      <main className="relative container mx-auto px-4 pb-16 pt-12">
+      <main className="relative container mx-auto px-4 pb-16 pt-12 sm:px-6">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Users className="h-5 w-5" />
             </div>
-            <div>
-              <h1 className="text-3xl font-semibold">Discover Students</h1>
-              <p className="text-sm text-muted-foreground">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-semibold break-words">Discover Students</h1>
+              <p className="text-sm text-muted-foreground break-words">
                 Search across colleges, availability, and skills to find your next collaborator.
               </p>
             </div>
@@ -158,16 +158,16 @@ export function DiscoverRoute() {
                 >
                   <div className="p-6">
                     <div className="flex flex-col items-center text-center">
-                      <Avatar className="h-20 w-20">
+                      <Avatar className="h-20 w-20 flex-shrink-0">
                         <img src={student.avatar} alt={student.name} />
                       </Avatar>
-                      <h3 className="mt-3 font-semibold">{student.name}</h3>
-                      <p className="text-xs text-muted-foreground">{student.email}</p>
+                      <h3 className="mt-3 font-semibold break-words w-full">{student.name}</h3>
+                      <p className="text-xs text-muted-foreground break-all w-full">{student.email}</p>
                       {student.college && (
-                        <p className="mt-1 text-xs font-medium text-primary">{student.college}</p>
+                        <p className="mt-1 text-xs font-medium text-primary break-words w-full">{student.college}</p>
                       )}
                       {student.headline && (
-                        <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+                        <p className="mt-2 line-clamp-2 text-xs text-muted-foreground break-words w-full">
                           {student.headline}
                         </p>
                       )}

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Compass, Sparkle, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LogoMark } from "@/features/misc/logo";
 import { formatDate } from "@/lib/utils";
+import { useAuth } from "@/features/auth/auth-context";
 import type { Opportunity, ServiceTile } from "@/lib/types";
 
 const mockOpportunities: Opportunity[] = [
@@ -136,6 +137,17 @@ function GradientBackdrop() {
 }
 
 function HeroSection() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleCtaClick = () => {
+    if (user) {
+      navigate("/dashboard");
+    } else {
+      navigate("/auth/register");
+    }
+  };
+
   return (
     <section className="grid gap-10 md:grid-cols-[1.1fr_0.9fr] md:items-center">
       <div className="space-y-8">
@@ -149,11 +161,9 @@ function HeroSection() {
           Collabity merges networking, discovery, and collaboration to help students and alumni build faster. Post hackathons, form startup squads, or spin up learning circles with trust baked in.
         </p>
         <div className="flex flex-wrap items-center gap-4">
-          <Button asChild size="lg" variant="gradient">
-            <Link to="/auth/register" className="flex items-center gap-2">
-              Start collaborating
-              <ArrowRight className="h-5 w-5" />
-            </Link>
+          <Button onClick={handleCtaClick} size="lg" variant="gradient" className="flex items-center gap-2">
+            Start collaborating
+            <ArrowRight className="h-5 w-5" />
           </Button>
           <Button asChild size="lg" variant="glass">
             <a href="#demo">See how it works</a>
@@ -430,6 +440,17 @@ function WhyCollabitySection() {
 }
 
 function CallToAction() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleCtaClick = () => {
+    if (user) {
+      navigate("/dashboard");
+    } else {
+      navigate("/auth/register");
+    }
+  };
+
   return (
     <section className="glass-panel relative overflow-hidden rounded-3xl p-10 text-center shadow-glass">
       <div className="absolute inset-0 bg-gradient-to-r from-sky-500/20 via-purple-500/20 to-indigo-500/20" />
@@ -442,8 +463,8 @@ function CallToAction() {
           Launch your profile, pick your collaboration vibe, and tap into a network of trusted student builders, alumni, and mentors.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
-          <Button asChild size="lg" variant="gradient">
-            <Link to="/auth/register">Create your profile</Link>
+          <Button onClick={handleCtaClick} size="lg" variant="gradient">
+            {user ? "Go to Dashboard" : "Create your profile"}
           </Button>
           <Button asChild size="lg" variant="glass">
             <Link to="/auth/login">I already have access</Link>

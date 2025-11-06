@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, type ReactNode } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -8,13 +8,14 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/features/auth/auth-context";
 import { getLatestPosts, type FeedPost } from "@/lib/post-service";
+import { togglePostReaction } from "@/lib/post-reactions";
+import { PostComposer } from "@/features/dashboard/components/post-composer";
 import {
   Loader2,
   Users,
   TrendingUp,
   Zap,
   Image as ImageIcon,
-  Video,
   FileText,
   Globe,
   Ellipsis,
@@ -109,11 +110,39 @@ const suggestedCollaborators = [
 export function DashboardRoute() {
   const { user, userProfile, loading } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [composerOpen, setComposerOpen] = useState(false);
 
   const { data: feedPosts, isLoading: feedLoading } = useQuery({
     queryKey: ["feed"],
     queryFn: () => getLatestPosts(20),
     enabled: !!user,
+  });
+
+  const reactionMutation = useMutation({
+    mutationFn: async (postId: string) => {
+      await togglePostReaction(postId);
+      return postId;
+    },
+    onMutate: async (postId) => {
+      await queryClient.cancelQueries({ queryKey: ["feed"] });
+      const previousFeed = queryClient.getQueryData<FeedPost[]>(["feed"]);
+
+      queryClient.setQueryData<FeedPost[]>(["feed"], (old) =>
+        old?.map((post) =>
+          post.id === postId
+            ? { ...post, reactions: (post.reactions ?? 0) + 1 }
+            : post
+        )
+      );
+
+      return { previousFeed };
+    },
+    onError: (_err, _postId, context) => {
+      if (context?.previousFeed) {
+        queryClient.setQueryData(["feed"], context.previousFeed);
+      }
+    },
   });
 
   const hasRemotePosts = (feedPosts?.length ?? 0) > 0;
@@ -133,9 +162,9 @@ export function DashboardRoute() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <main className="mx-auto flex w-full max-w-[1120px] flex-col gap-6 px-4 pb-16 pt-8 lg:flex-row">
-        <aside className="flex w-full flex-col gap-6 lg:max-w-[280px]">
+    <div className="min-h-screen bg-background text-foreground pb-20 lg:pb-0">
+      <main className="mx-auto flex w-full max-w-[1120px] flex-col gap-6 px-4 pb-8 pt-4 sm:px-6 lg:flex-row lg:pt-8">
+        <aside className="hidden lg:flex w-full flex-col gap-6 lg:max-w-[280px]">
           <Card className="overflow-hidden border border-border bg-white shadow-sm dark:border-white/10 dark:bg-slate-900">
             <div className="h-20 bg-gradient-to-r from-sky-200 via-indigo-200 to-purple-200" />
             <div className="px-6 pb-6">
@@ -191,7 +220,7 @@ export function DashboardRoute() {
                   </div>
                 </div>
               )}
-              <Button className="mt-6 w-full" variant="outline">
+              <Button className="mt-6 w-full" variant="outline" onClick={() => navigate(`/profile/${user.uid}`)}>
                 View profile
               </Button>
             </div>
@@ -213,30 +242,26 @@ export function DashboardRoute() {
         </aside>
 
         <section className="flex-1 space-y-4">
-          <Card className="border border-border bg-white shadow-sm dark:border-white/10 dark:bg-slate-900">
-            <div className="flex gap-3 p-4">
-              <Avatar className="h-12 w-12">
-                <img
-                  src={
-                    userProfile?.avatar ||
-                    user.photoURL ||
-                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`
-                  }
-                  alt="Your avatar"
-                />
-              </Avatar>
-              <div className="flex-1">
-                <button className="w-full rounded-full border border-muted bg-muted/40 px-4 py-2 text-left text-sm text-muted-foreground transition hover:bg-muted">
-                  Start a post
-                </button>
-                <div className="mt-4 grid grid-cols-3 gap-2 text-xs font-medium text-muted-foreground">
-                  <QuickAction icon={<ImageIcon className="h-4 w-4 text-blue-500" />} label="Image" />
-                  <QuickAction icon={<Video className="h-4 w-4 text-green-500" />} label="Video" />
-                  <QuickAction icon={<FileText className="h-4 w-4 text-amber-500" />} label="Document" />
-                </div>
-              </div>
-            </div>
-          </Card>
+          <div className="sticky top-16 z-40 mb-3 flex gap-2 bg-background py-2 lg:static lg:z-auto lg:mb-4 lg:gap-3">
+            <Avatar className="h-10 w-10 lg:h-12 lg:w-12 flex-shrink-0">
+              <img
+                src={
+                  userProfile?.avatar ||
+                  user.photoURL ||
+                  `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`
+                }
+                alt="Your avatar"
+              />
+            </Avatar>
+            <button 
+              onClick={() => setComposerOpen(true)}
+              className="w-full rounded-full border border-muted bg-muted/40 px-4 py-2 text-left text-sm text-muted-foreground transition hover:bg-muted"
+            >
+              Start a post
+            </button>
+          </div>
+
+          <PostComposer open={composerOpen} onOpenChange={setComposerOpen} />
 
           {feedLoading && !hasRemotePosts && (
             <Card className="border border-border bg-white shadow-sm dark:border-white/10 dark:bg-slate-900">
@@ -254,32 +279,32 @@ export function DashboardRoute() {
               <Card key={item.id} className="border border-border bg-white shadow-sm dark:border-white/10 dark:bg-slate-900">
                 <div className="p-4">
                   <div className="flex items-start gap-3">
-                    <Avatar className="h-12 w-12">
+                    <Avatar className="h-12 w-12 flex-shrink-0">
                       <img src={item.authorAvatar} alt={item.authorName} />
                     </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-sm font-semibold">{item.authorName}</p>
-                          <p className="text-xs text-muted-foreground">{item.authorTitle}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold break-words">{item.authorName}</p>
+                          <p className="text-xs text-muted-foreground break-words">{item.authorTitle}</p>
                           <div className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
                             <span>{relativeTime}</span>
                             {item.visibility === "public" && (
                               <>
                                 <span>•</span>
-                                <Globe className="h-3 w-3" />
+                                <Globe className="h-3 w-3 flex-shrink-0" />
                               </>
                             )}
                           </div>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 text-muted-foreground">
                           <Ellipsis className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
                   </div>
 
-                  <p className="mt-4 text-sm leading-6 text-muted-foreground">{item.content}</p>
+                  <p className="mt-4 text-sm leading-6 text-muted-foreground break-words">{item.content}</p>
 
                   {item.tags && item.tags.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2 text-xs text-primary/80">
@@ -293,13 +318,13 @@ export function DashboardRoute() {
                     <div className="mt-4 overflow-hidden rounded-lg border border-muted/40">
                       {item.attachments.map((attachment) => (
                         <div key={attachment.title} className="flex items-center gap-3 bg-muted/30 p-4">
-                          {attachment.type === "image" && <ImageIcon className="h-5 w-5 text-blue-500" />}
-                          {attachment.type === "doc" && <FileText className="h-5 w-5 text-amber-500" />}
-                          {attachment.type === "link" && <Share2 className="h-5 w-5 text-primary" />}
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{attachment.title}</p>
+                          {attachment.type === "image" && <ImageIcon className="h-5 w-5 flex-shrink-0 text-blue-500" />}
+                          {attachment.type === "doc" && <FileText className="h-5 w-5 flex-shrink-0 text-amber-500" />}
+                          {attachment.type === "link" && <Share2 className="h-5 w-5 flex-shrink-0 text-primary" />}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-foreground break-words">{attachment.title}</p>
                             {attachment.description && (
-                              <p className="text-xs text-muted-foreground">{attachment.description}</p>
+                              <p className="text-xs text-muted-foreground break-words">{attachment.description}</p>
                             )}
                           </div>
                         </div>
@@ -307,13 +332,17 @@ export function DashboardRoute() {
                     </div>
                   )}
 
-                  <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                     <span>{item.reactions ?? 0} reactions</span>
-                    <span>{item.comments ?? 0} comments • {item.shares ?? 0} shares</span>
+                    <span className="whitespace-nowrap">{item.comments ?? 0} comments • {item.shares ?? 0} shares</span>
                   </div>
 
                   <div className="mt-3 grid grid-cols-4 border-y border-muted/20 py-1 text-xs font-medium text-muted-foreground">
-                    <PostAction icon={<ThumbsUp className="h-4 w-4" />} label="Like" />
+                    <PostAction 
+                      icon={<ThumbsUp className="h-4 w-4" />} 
+                      label="Like" 
+                      onClick={() => reactionMutation.mutate(item.id)}
+                    />
                     <PostAction icon={<MessageCircle className="h-4 w-4" />} label="Comment" />
                     <PostAction icon={<Share2 className="h-4 w-4" />} label="Share" />
                     <PostAction icon={<Send className="h-4 w-4" />} label="Send" />
@@ -362,20 +391,14 @@ export function DashboardRoute() {
   );
 }
 
-function QuickAction({ icon, label }: { icon: ReactNode; label: string }) {
+function PostAction({ icon, label, onClick }: { icon: ReactNode; label: string; onClick?: () => void }) {
   return (
-    <button className="flex items-center justify-center gap-2 rounded-md py-2 transition hover:bg-muted">
-      {icon}
-      <span>{label}</span>
-    </button>
-  );
-}
-
-function PostAction({ icon, label }: { icon: ReactNode; label: string }) {
-  return (
-    <button className="flex items-center justify-center gap-2 py-2 transition hover:bg-muted/60">
-      {icon}
-      <span>{label}</span>
+    <button 
+      onClick={onClick}
+      className="flex items-center justify-center gap-1 sm:gap-2 py-2 transition hover:bg-muted/60"
+    >
+      <span className="flex-shrink-0">{icon}</span>
+      <span className="hidden xs:inline sm:inline">{label}</span>
     </button>
   );
 }
