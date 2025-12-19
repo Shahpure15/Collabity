@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { WordMark } from "@/features/misc/logo";
 import { useAuth } from "@/features/auth/auth-context";
+import { useCollege } from "@/features/college";
 import { CollegeSelectorModal } from "@/features/college/components/college-selector-modal";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ const landingAnchors = [
 
 export function SiteNavbar() {
   const { user, userProfile } = useAuth();
+  const { hasCollege } = useCollege();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -128,8 +130,12 @@ export function SiteNavbar() {
                   variant="ghost" 
                   size="sm"
                   onClick={() => {
-                    setSelectorMode("login");
-                    setShowCollegeSelector(true);
+                    if (hasCollege) {
+                      navigate("/auth/login");
+                    } else {
+                      setSelectorMode("login");
+                      setShowCollegeSelector(true);
+                    }
                   }}
                 >
                   Log in
@@ -138,8 +144,12 @@ export function SiteNavbar() {
                   variant="gradient" 
                   size="sm"
                   onClick={() => {
-                    setSelectorMode("register");
-                    setShowCollegeSelector(true);
+                    if (hasCollege) {
+                      navigate("/auth/register");
+                    } else {
+                      setSelectorMode("register");
+                      setShowCollegeSelector(true);
+                    }
                   }}
                 >
                   Join the beta

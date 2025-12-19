@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LogoMark } from "@/features/misc/logo";
 import { useAuth } from "@/features/auth/auth-context";
+import { useCollege } from "@/features/college";
 import { CollegeSelectorModal } from "@/features/college/components/college-selector-modal";
 import type { ServiceTile } from "@/lib/types";
 
@@ -84,6 +85,7 @@ function GradientBackdrop() {
 
 function HeroSection() {
   const { user } = useAuth();
+  const { hasCollege } = useCollege();
   const navigate = useNavigate();
   const [showCollegeSelector, setShowCollegeSelector] = useState(false);
   const [selectorMode, setSelectorMode] = useState<"login" | "register">("register");
@@ -91,8 +93,11 @@ function HeroSection() {
   const handleCtaClick = () => {
     if (user) {
       navigate("/dashboard");
+    } else if (hasCollege) {
+      // On college subdomain, redirect directly to register
+      navigate("/auth/register");
     } else {
-      // Always show college selector for non-authenticated users
+      // On root domain, show college selector
       setSelectorMode("register");
       setShowCollegeSelector(true);
     }
@@ -271,6 +276,7 @@ function WhyCollabitySection() {
 
 function CallToAction() {
   const { user } = useAuth();
+  const { hasCollege } = useCollege();
   const navigate = useNavigate();
   const [showCollegeSelector, setShowCollegeSelector] = useState(false);
   const [selectorMode, setSelectorMode] = useState<"login" | "register">("register");
@@ -278,17 +284,25 @@ function CallToAction() {
   const handleCtaClick = () => {
     if (user) {
       navigate("/dashboard");
+    } else if (hasCollege) {
+      // On college subdomain, redirect directly to register
+      navigate("/auth/register");
     } else {
-      // Always show college selector for non-authenticated users
+      // On root domain, show college selector
       setSelectorMode("register");
       setShowCollegeSelector(true);
     }
   };
 
   const handleLoginClick = () => {
-    // Always show college selector for login
-    setSelectorMode("login");
-    setShowCollegeSelector(true);
+    if (hasCollege) {
+      // On college subdomain, redirect directly to login
+      navigate("/auth/login");
+    } else {
+      // On root domain, show college selector
+      setSelectorMode("login");
+      setShowCollegeSelector(true);
+    }
   };
 
   return (

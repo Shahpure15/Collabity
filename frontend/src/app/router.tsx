@@ -12,6 +12,7 @@ import { DashboardRoute } from "@/features/dashboard/routes/dashboard-route";
 import { DiscoverRoute } from "@/features/discover/routes/discover-route";
 import { ProfileRoute } from "@/features/profile/routes/profile-route";
 import { MissingCollegeRoute } from "@/features/college/routes/missing-college-route";
+import { NotFoundRoute } from "@/features/misc/routes/not-found-route";
 
 export const router = createBrowserRouter([
   {
@@ -64,5 +65,9 @@ export const router = createBrowserRouter([
   {
     path: "/missing-college",
     element: <MissingCollegeRoute />,
+  },
+  {
+    path: "*",
+    element: <NotFoundRoute />,
   },
 ]);
