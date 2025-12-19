@@ -5,6 +5,7 @@ export interface UserProfile {
   name: string;
   email: string;
   college: string;
+  collegeSlug?: string;
   avatar: string;
   headline: string;
   skills: string[];

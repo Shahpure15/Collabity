@@ -5,9 +5,11 @@ import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { isEmailLink, completeEmailLinkSignIn } from "@/lib/firebase";
 import { createUserProfile } from "@/lib/user-service";
+import { useCollege } from "@/features/college";
 
 export function VerifyEmailRoute() {
   const navigate = useNavigate();
+  const { collegeSlug } = useCollege();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [error, setError] = useState<string>("");
 
@@ -42,6 +44,7 @@ export function VerifyEmailRoute() {
           email: userCredential.user.email!,
           name: userCredential.user.displayName || undefined,
           photoURL: userCredential.user.photoURL || undefined,
+          collegeSlug: collegeSlug || undefined,
         });
 
         console.log("[auth] Email link sign-in successful");

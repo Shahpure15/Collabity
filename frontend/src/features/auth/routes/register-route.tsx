@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { registerWithEmail, signInWithGoogle } from "@/lib/firebase";
 import { createUserProfile } from "@/lib/user-service";
+import { useCollege } from "@/features/college";
 
 const registerSchema = z
   .object({
@@ -26,6 +27,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterRoute() {
   const navigate = useNavigate();
+  const { collegeSlug } = useCollege();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -49,6 +51,7 @@ export function RegisterRoute() {
       await createUserProfile(userCredential.user.uid, {
         email: values.email,
         name: values.name,
+        collegeSlug: collegeSlug || undefined,
       });
       
       console.log("[auth] User profile created successfully");
@@ -77,6 +80,7 @@ export function RegisterRoute() {
           email: userCredential.user.email!,
           name: userCredential.user.displayName || undefined,
           photoURL: userCredential.user.photoURL || undefined,
+          collegeSlug: collegeSlug || undefined,
         });
       }
       
@@ -105,9 +109,9 @@ export function RegisterRoute() {
             <Sparkles className="h-4 w-4 text-primary" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-3xl font-display">Create your Collabity identity</h1>
+            <h1 className="text-3xl font-display">Create your account</h1>
             <p className="text-sm text-muted-foreground">
-              Verified profiles unlock trusted collabs, mentor access, and exclusive hackathons.
+              Build your profile to discover internships and academic projects.
             </p>
           </div>
         </header>
@@ -164,7 +168,7 @@ export function RegisterRoute() {
           </Button>
         </div>
         <p className="text-center text-sm text-muted-foreground">
-          Already collaborating? <Link className="text-primary" to="/auth/login">Log in</Link>
+          Already have an account? <Link className="text-primary" to="/auth/login">Log in</Link>
         </p>
       </div>
     </div>

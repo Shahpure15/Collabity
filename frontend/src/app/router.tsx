@@ -10,8 +10,8 @@ import { VerifyEmailRoute } from "@/features/auth/routes/verify-email-route";
 import { LandingRoute } from "@/features/landing";
 import { DashboardRoute } from "@/features/dashboard/routes/dashboard-route";
 import { DiscoverRoute } from "@/features/discover/routes/discover-route";
-import { StudentsRoute } from "@/features/students/routes/students-route";
 import { ProfileRoute } from "@/features/profile/routes/profile-route";
+import { MissingCollegeRoute } from "@/features/college/routes/missing-college-route";
 
 export const router = createBrowserRouter([
   {
@@ -28,10 +28,6 @@ export const router = createBrowserRouter([
       {
         path: "discover",
         element: <DiscoverRoute />,
-      },
-      {
-        path: "students",
-        element: <StudentsRoute />,
       },
       {
         path: "profile/:userId",
@@ -64,5 +60,9 @@ export const router = createBrowserRouter([
   {
     path: "/auth/verify-email",
     element: <VerifyEmailRoute />,
+  },
+  {
+    path: "/missing-college",
+    element: <MissingCollegeRoute />,
   },
 ]);

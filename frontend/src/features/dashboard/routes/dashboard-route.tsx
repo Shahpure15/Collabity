@@ -230,7 +230,7 @@ export function DashboardRoute() {
             <div className="space-y-4 p-5 text-sm">
               <h3 className="text-sm font-semibold">Your metrics</h3>
               <div className="space-y-3 text-muted-foreground">
-                <MetricRow label="Collaborations" value="0" icon={<TrendingUp className="h-4 w-4 text-blue-500" />} />
+                <MetricRow label="Projects" value="0" icon={<TrendingUp className="h-4 w-4 text-blue-500" />} />
                 <MetricRow label="Connections" value="0" icon={<Users className="h-4 w-4 text-violet-500" />} />
                 <MetricRow label="Day streak" value="0" icon={<Zap className="h-4 w-4 text-amber-500" />} />
               </div>
@@ -354,8 +354,8 @@ export function DashboardRoute() {
         </section>
 
         <aside className="hidden w-full flex-col gap-6 xl:flex xl:max-w-[320px]">
-          <Card className="border border-border bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900">
-            <h3 className="text-sm font-semibold">Trending student circles</h3>
+          <Card className="hidden border border-border bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900">
+            <h3 className="text-sm font-semibold">Trending topics</h3>
             <div className="mt-4 space-y-4 text-sm text-muted-foreground">
               <TrendingItem title="IISc x IITM climate micro-builds" subtitle="36 members" />
               <TrendingItem title="Bitsian founders collective" subtitle="18 new posts this week" />
@@ -366,8 +366,8 @@ export function DashboardRoute() {
             </Button>
           </Card>
 
-          <Card className="border border-border bg-white p-5 text-sm shadow-sm dark:border-white/10 dark:bg-slate-900">
-            <h3 className="text-sm font-semibold">Suggested collaborators</h3>
+          <Card className="hidden border border-border bg-white p-5 text-sm shadow-sm dark:border-white/10 dark:bg-slate-900">
+            <h3 className="text-sm font-semibold">Suggested students</h3>
             <div className="mt-4 space-y-4">
               {suggestedCollaborators.map((person) => (
                 <div key={person.email} className="flex items-center gap-3">

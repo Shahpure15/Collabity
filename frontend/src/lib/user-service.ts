@@ -23,6 +23,7 @@ export async function createUserProfile(
     email: string;
     name?: string;
     photoURL?: string;
+    collegeSlug?: string;
   }
 ): Promise<void> {
   const db = getFirestoreInstance();
@@ -39,7 +40,8 @@ export async function createUserProfile(
       email: data.email,
       name: data.name || data.email.split("@")[0],
       avatar: data.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${uid}`,
-      college: "",
+      college: data.collegeSlug || "",
+      collegeSlug: data.collegeSlug || "",
       headline: "Student looking to collaborate",
       skills: [],
       interests: [],

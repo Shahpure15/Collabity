@@ -90,7 +90,7 @@ export function DiscoverRoute() {
             <div className="min-w-0 flex-1">
               <h1 className="text-2xl sm:text-3xl font-semibold break-words">Discover Students</h1>
               <p className="text-sm text-muted-foreground break-words">
-                Search across colleges, availability, and skills to find your next collaborator.
+                Search for students by college, availability, and skills.
               </p>
             </div>
           </div>

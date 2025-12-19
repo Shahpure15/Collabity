@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { AuthProvider } from "@/features/auth/auth-context";
+import { CollegeProvider } from "@/features/college/college-context";
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -15,9 +16,11 @@ export function AppProviders({ children }: AppProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <CollegeProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </CollegeProvider>
       </ThemeProvider>
       {import.meta.env.DEV ? (
         <ReactQueryDevtools initialIsOpen={false} />

@@ -17,16 +17,16 @@ export function AuthLayout() {
           </header>
           <div className="space-y-6">
             <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-              Unlock your builder energy
+              Academic opportunity portal
             </h2>
             <p className="text-lg text-white/80">
-              Collabity brings students, alumni, and mentors into one trusted space to build, learn, and ship together.
+              Connect students with internships and academic projects from faculty and industry partners.
             </p>
           </div>
           <div className="space-y-3 text-sm text-white/70">
-            <p>✔️ Skill-matched teammates</p>
-            <p>✔️ Verified collaboration history</p>
-            <p>✔️ Real-time project rooms</p>
+            <p>✔️ Discover opportunities</p>
+            <p>✔️ Track applications</p>
+            <p>✔️ Build your profile</p>
           </div>
         </div>
         <div className="flex w-full flex-col gap-8 p-10 lg:w-1/2">

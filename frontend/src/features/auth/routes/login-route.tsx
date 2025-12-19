@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { signInWithEmail, signInWithGoogle } from "@/lib/firebase";
 import { verifyToken } from "@/lib/api";
 import { createUserProfile } from "@/lib/user-service";
+import { useCollege } from "@/features/college";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -19,8 +20,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginRoute() {
-  const navigate = useNavigate();
-  const [authError, setAuthError] = useState<string | null>(null);
+  const navigate = useNavigate();  const { collegeSlug } = useCollege();  const [authError, setAuthError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -42,6 +42,7 @@ export function LoginRoute() {
         email: userCredential.user.email!,
         name: userCredential.user.displayName || undefined,
         photoURL: userCredential.user.photoURL || undefined,
+        collegeSlug: collegeSlug || undefined,
       });
       
       // Verify token with backend
@@ -78,6 +79,7 @@ export function LoginRoute() {
           email: userCredential.user.email!,
           name: userCredential.user.displayName || undefined,
           photoURL: userCredential.user.photoURL || undefined,
+          collegeSlug: collegeSlug || undefined,
         });
       }
       
@@ -114,9 +116,9 @@ export function LoginRoute() {
             <Sparkles className="h-4 w-4 text-primary" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-3xl font-display">Welcome back, builder</h1>
+            <h1 className="text-3xl font-display">Welcome back</h1>
             <p className="text-sm text-muted-foreground">
-              Pick up your collaborations, explore new opportunities, and keep your streak alive.
+              Access your profile and explore available opportunities.
             </p>
           </div>
         </header>
