@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { AlertCircle, Building2, Globe } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { AlertCircle, Building2, Globe, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { LogoMark } from "@/features/misc/logo";
 export function MissingCollegeRoute() {
   const [manualSlug, setManualSlug] = useState("");
   const [showDevOverride, setShowDevOverride] = useState(false);
+  const navigate = useNavigate();
 
   const handleSetCollege = () => {
     if (manualSlug.trim()) {
@@ -85,6 +87,18 @@ export function MissingCollegeRoute() {
                 <br />
                 Contact your placement cell or reach out to us for onboarding information.
               </p>
+            </div>
+
+            {/* Return to home button */}
+            <div className="flex justify-center">
+              <Button
+                onClick={() => navigate("/")}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Home className="h-4 w-4" />
+                Return to Home
+              </Button>
             </div>
 
             {/* Localhost development override */}
