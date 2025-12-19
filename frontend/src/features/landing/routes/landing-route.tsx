@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Compass, Sparkle, Users } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LogoMark } from "@/features/misc/logo";
 import { useAuth } from "@/features/auth/auth-context";
+import { useCollege } from "@/features/college";
+import { CollegeSelectorModal } from "@/features/college/components/college-selector-modal";
 import type { ServiceTile } from "@/lib/types";
 
 const serviceTiles: ServiceTile[] = [
@@ -82,18 +85,32 @@ function GradientBackdrop() {
 
 function HeroSection() {
   const { user } = useAuth();
+  const { hasCollege } = useCollege();
   const navigate = useNavigate();
+  const [showCollegeSelector, setShowCollegeSelector] = useState(false);
+  const [selectorMode, setSelectorMode] = useState<"login" | "register">("register");
 
   const handleCtaClick = () => {
     if (user) {
       navigate("/dashboard");
-    } else {
+    } else if (hasCollege) {
+      // Already on college subdomain, go directly to register
       navigate("/auth/register");
+    } else {
+      // On root domain, show college selector
+      setSelectorMode("register");
+      setShowCollegeSelector(true);
     }
   };
 
   return (
-    <section className="grid gap-10 md:grid-cols-[1.1fr_0.9fr] md:items-center">
+    <>
+      <CollegeSelectorModal 
+        open={showCollegeSelector} 
+        onClose={() => setShowCollegeSelector(false)}
+        mode={selectorMode}
+      />
+      <section className="grid gap-10 md:grid-cols-[1.1fr_0.9fr] md:items-center">
       <div className="space-y-8">
         <Badge variant="glass" className="w-fit">
           Academic excellence · Opportunity · Growth · Success
@@ -145,6 +162,7 @@ function HeroSection() {
         </div>
       </div>
     </section>
+    </>
   );
 }
 
@@ -258,18 +276,39 @@ function WhyCollabitySection() {
 
 function CallToAction() {
   const { user } = useAuth();
+  const { hasCollege } = useCollege();
   const navigate = useNavigate();
+  const [showCollegeSelector, setShowCollegeSelector] = useState(false);
+  const [selectorMode, setSelectorMode] = useState<"login" | "register">("register");
 
   const handleCtaClick = () => {
     if (user) {
       navigate("/dashboard");
-    } else {
+    } else if (hasCollege) {
       navigate("/auth/register");
+    } else {
+      setSelectorMode("register");
+      setShowCollegeSelector(true);
+    }
+  };
+
+  const handleLoginClick = () => {
+    if (hasCollege) {
+      navigate("/auth/login");
+    } else {
+      setSelectorMode("login");
+      setShowCollegeSelector(true);
     }
   };
 
   return (
-    <section className="glass-panel relative overflow-hidden rounded-3xl p-10 text-center shadow-glass">
+    <>
+      <CollegeSelectorModal 
+        open={showCollegeSelector} 
+        onClose={() => setShowCollegeSelector(false)}
+        mode={selectorMode}
+      />
+      <section className="glass-panel relative overflow-hidden rounded-3xl p-10 text-center shadow-glass">
       <div className="absolute inset-0 bg-gradient-to-r from-sky-500/20 via-purple-500/20 to-indigo-500/20" />
       <div className="relative z-10 space-y-6">
         <Badge variant="glass" className="mx-auto w-fit">
@@ -283,13 +322,14 @@ function CallToAction() {
           <Button onClick={handleCtaClick} size="lg" variant="gradient">
             {user ? "Go to Dashboard" : "Create your profile"}
           </Button>
-          <Button asChild size="lg" variant="glass">
-            <Link to="/auth/login">I already have access</Link>
+          <Button onClick={handleLoginClick} size="lg" variant="glass">
+            I already have access
           </Button>
         </div>
       </div>
       <div className="pointer-events-none absolute -left-16 bottom-0 h-40 w-40 rounded-full bg-sky-100/40 blur-3xl" />
       <div className="pointer-events-none absolute -right-10 top-0 h-40 w-40 rounded-full bg-purple-100/50 blur-2xl" />
     </section>
+    </>
   );
 }

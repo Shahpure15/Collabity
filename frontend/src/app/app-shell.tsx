@@ -1,10 +1,11 @@
-import { Outlet, Navigate } from "react-router-dom";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 
 import { SiteNavbar } from "@/components/layout/site-navbar";
 import { useCollege } from "@/features/college/college-context";
 
 export function AppShell() {
   const { hasCollege, isLoading } = useCollege();
+  const location = useLocation();
 
   // Show loading state while checking college
   if (isLoading) {
@@ -18,8 +19,11 @@ export function AppShell() {
     );
   }
 
-  // Redirect to missing college page if no college slug
-  if (!hasCollege) {
+  // Only redirect to missing-college if accessing protected routes without college
+  const protectedRoutes = ['/dashboard', '/discover', '/profile'];
+  const isProtectedRoute = protectedRoutes.some(route => location.pathname.startsWith(route));
+  
+  if (!hasCollege && isProtectedRoute) {
     return <Navigate to="/missing-college" replace />;
   }
 

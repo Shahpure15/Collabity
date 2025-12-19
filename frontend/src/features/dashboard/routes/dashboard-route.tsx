@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/features/auth/auth-context";
+import { useCollege } from "@/features/college";
 import { getLatestPosts, type FeedPost } from "@/lib/post-service";
 import { togglePostReaction } from "@/lib/post-reactions";
 import { PostComposer } from "@/features/dashboard/components/post-composer";
@@ -109,14 +110,15 @@ const suggestedCollaborators = [
 
 export function DashboardRoute() {
   const { user, userProfile, loading } = useAuth();
+  const { collegeSlug } = useCollege();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [composerOpen, setComposerOpen] = useState(false);
 
   const { data: feedPosts, isLoading: feedLoading } = useQuery({
-    queryKey: ["feed"],
-    queryFn: () => getLatestPosts(20),
-    enabled: !!user,
+    queryKey: ["feed", collegeSlug],
+    queryFn: () => getLatestPosts(collegeSlug, 20),
+    enabled: !!user && !!collegeSlug,
   });
 
   const reactionMutation = useMutation({
@@ -125,10 +127,10 @@ export function DashboardRoute() {
       return postId;
     },
     onMutate: async (postId) => {
-      await queryClient.cancelQueries({ queryKey: ["feed"] });
-      const previousFeed = queryClient.getQueryData<FeedPost[]>(["feed"]);
+      await queryClient.cancelQueries({ queryKey: ["feed", collegeSlug] });
+      const previousFeed = queryClient.getQueryData<FeedPost[]>(["feed", collegeSlug]);
 
-      queryClient.setQueryData<FeedPost[]>(["feed"], (old) =>
+      queryClient.setQueryData<FeedPost[]>(["feed", collegeSlug], (old) =>
         old?.map((post) =>
           post.id === postId
             ? { ...post, reactions: (post.reactions ?? 0) + 1 }
@@ -140,7 +142,7 @@ export function DashboardRoute() {
     },
     onError: (_err, _postId, context) => {
       if (context?.previousFeed) {
-        queryClient.setQueryData(["feed"], context.previousFeed);
+        queryClient.setQueryData(["feed", collegeSlug], context.previousFeed);
       }
     },
   });
@@ -261,7 +263,7 @@ export function DashboardRoute() {
             </button>
           </div>
 
-          <PostComposer open={composerOpen} onOpenChange={setComposerOpen} />
+          <PostComposer open={composerOpen} onOpenChange={setComposerOpen} collegeSlug={collegeSlug} />
 
           {feedLoading && !hasRemotePosts && (
             <Card className="border border-border bg-white shadow-sm dark:border-white/10 dark:bg-slate-900">

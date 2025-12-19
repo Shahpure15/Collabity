@@ -19,9 +19,10 @@ import { createPost } from "@/lib/post-service";
 interface PostComposerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  collegeSlug: string | null;
 }
 
-export function PostComposer({ open, onOpenChange }: PostComposerProps) {
+export function PostComposer({ open, onOpenChange, collegeSlug }: PostComposerProps) {
   const { user, userProfile } = useAuth();
   const queryClient = useQueryClient();
 
@@ -45,10 +46,11 @@ export function PostComposer({ open, onOpenChange }: PostComposerProps) {
         content: content.trim(),
         visibility: "public",
         tags: tags.length > 0 ? tags : undefined,
+        collegeSlug: collegeSlug || undefined,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["feed", collegeSlug] });
       setContent("");
       setTags([]);
       setTagInput("");

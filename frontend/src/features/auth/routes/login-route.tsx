@@ -11,6 +11,7 @@ import { signInWithEmail, signInWithGoogle } from "@/lib/firebase";
 import { verifyToken } from "@/lib/api";
 import { createUserProfile } from "@/lib/user-service";
 import { useCollege } from "@/features/college";
+import { validateEmailForCollege } from "@/lib/email-validation";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -35,6 +36,14 @@ export function LoginRoute() {
     setAuthError(null);
     setIsSubmitting(true);
     try {
+      // Validate email domain for college
+      const emailValidation = validateEmailForCollege(values.email, collegeSlug);
+      if (!emailValidation.isValid) {
+        setAuthError(emailValidation.error || "Invalid email for this institution");
+        setIsSubmitting(false);
+        return;
+      }
+
       const userCredential = await signInWithEmail(values.email, values.password);
       
       // Ensure user profile exists in Firestore

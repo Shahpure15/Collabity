@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/features/auth/auth-context";
+import { useCollege } from "@/features/college";
 import {
   getAllUsers,
   searchUsers,
@@ -21,29 +22,30 @@ import {
 export function DiscoverRoute() {
   const navigate = useNavigate();
   const { user, userProfile } = useAuth();
+  const { collegeSlug } = useCollege();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<"all" | "college" | "available">("all");
 
   const { data: users, isLoading } = useQuery({
-    queryKey: ["users", filterType, searchTerm, userProfile?.college],
+    queryKey: ["users", filterType, searchTerm, collegeSlug],
     queryFn: async () => {
       if (searchTerm) {
-        return await searchUsers(searchTerm);
+        return await searchUsers(searchTerm, collegeSlug);
       }
 
       switch (filterType) {
         case "college":
-          return userProfile?.college
-            ? await getUsersByCollege(userProfile.college)
-            : await getAllUsers();
+          return collegeSlug
+            ? await getUsersByCollege(collegeSlug)
+            : await getAllUsers(collegeSlug);
         case "available":
-          return await getUsersByAvailability("open");
+          return await getUsersByAvailability("open", collegeSlug);
         default:
-          return await getAllUsers();
+          return await getAllUsers(collegeSlug);
       }
     },
-    enabled: !!user,
+    enabled: !!user && !!collegeSlug,
   });
 
   const { data: connectedUserIds = [], isLoading: connectionsLoading } = useQuery({

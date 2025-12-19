@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { registerWithEmail, signInWithGoogle } from "@/lib/firebase";
 import { createUserProfile } from "@/lib/user-service";
 import { useCollege } from "@/features/college";
+import { validateEmailForCollege, getAllowedEmailDomainsText } from "@/lib/email-validation";
 
 const registerSchema = z
   .object({
@@ -30,6 +31,8 @@ export function RegisterRoute() {
   const { collegeSlug } = useCollege();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const allowedEmailDomains = getAllowedEmailDomainsText();
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -45,6 +48,14 @@ export function RegisterRoute() {
     setError(null);
     setIsSubmitting(true);
     try {
+      // Validate email domain for college
+      const emailValidation = validateEmailForCollege(values.email, collegeSlug);
+      if (!emailValidation.isValid) {
+        setError(emailValidation.error || "Invalid email for this institution");
+        setIsSubmitting(false);
+        return;
+      }
+
       const userCredential = await registerWithEmail(values.email, values.password);
       
       // Create user profile in Firestore
@@ -125,6 +136,11 @@ export function RegisterRoute() {
           <Field label="Email" name="email">
             <Input placeholder="you@college.edu" type="email" {...form.register("email")} />
           </Field>
+          {allowedEmailDomains && (
+            <p className="text-xs text-muted-foreground">
+              Use your institutional email ({allowedEmailDomains})
+            </p>
+          )}
           {form.formState.errors.email && (
             <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
           )}

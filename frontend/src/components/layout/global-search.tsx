@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useCollege } from "@/features/college";
 import { searchUsers } from "@/lib/user-service";
 import { getLatestPosts } from "@/lib/post-service";
 
@@ -18,6 +19,7 @@ interface GlobalSearchProps {
 export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedTerm, setDebouncedTerm] = useState("");
+  const { collegeSlug } = useCollege();
   const navigate = useNavigate();
 
   // Debounce search term
@@ -30,19 +32,19 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   }, [searchTerm]);
 
   const { data: users, isLoading: usersLoading } = useQuery({
-    queryKey: ["search-users", debouncedTerm],
+    queryKey: ["search-users", debouncedTerm, collegeSlug],
     queryFn: async () => {
       if (!debouncedTerm) return [];
-      return await searchUsers(debouncedTerm);
+      return await searchUsers(debouncedTerm, collegeSlug);
     },
     enabled: debouncedTerm.length > 0,
   });
 
   const { data: allPosts } = useQuery({
-    queryKey: ["search-posts", debouncedTerm],
+    queryKey: ["search-posts", debouncedTerm, collegeSlug],
     queryFn: async () => {
       if (!debouncedTerm) return [];
-      const posts = await getLatestPosts();
+      const posts = await getLatestPosts(collegeSlug);
       // Filter posts by content or tags
       return posts.filter(
         (post) =>

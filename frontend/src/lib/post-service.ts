@@ -4,6 +4,7 @@ import {
   limit,
   orderBy,
   query,
+  where,
   serverTimestamp,
   addDoc,
   Timestamp,
@@ -26,6 +27,7 @@ export interface FeedPost {
   authorName: string;
   authorTitle: string;
   authorAvatar: string;
+  collegeSlug?: string;
   visibility?: "public" | "community";
   content: string;
   tags?: string[];
@@ -38,13 +40,19 @@ export interface FeedPost {
 
 /**
  * Fetch the latest posts for the dashboard feed
+ * Filtered by college to show only posts from the same institution
  */
-export async function getLatestPosts(maxResults = 20): Promise<FeedPost[]> {
+export async function getLatestPosts(collegeSlug: string | null, maxResults = 20): Promise<FeedPost[]> {
   const db = getFirestoreInstance();
   if (!db) throw new Error("Firestore not initialized");
 
   const postsRef = collection(db, "posts");
-  const q = query(postsRef, orderBy("createdAt", "desc"), limit(maxResults));
+  
+  // Filter by collegeSlug if provided
+  const q = collegeSlug
+    ? query(postsRef, where("collegeSlug", "==", collegeSlug), orderBy("createdAt", "desc"), limit(maxResults))
+    : query(postsRef, orderBy("createdAt", "desc"), limit(maxResults));
+    
   const snapshot = await getDocs(q);
 
   return snapshot.docs.map((docSnap) => {
@@ -59,6 +67,7 @@ export async function getLatestPosts(maxResults = 20): Promise<FeedPost[]> {
       authorAvatar:
         data.authorAvatar ||
         `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.authorId ?? docSnap.id}`,
+      collegeSlug: data.collegeSlug,
       visibility: data.visibility ?? "public",
       content: data.content ?? "",
       tags: data.tags ?? [],
@@ -79,6 +88,7 @@ export async function createPost(post: {
   authorName: string;
   authorTitle: string;
   authorAvatar: string;
+  collegeSlug?: string;
   content: string;
   visibility?: "public" | "community";
   tags?: string[];

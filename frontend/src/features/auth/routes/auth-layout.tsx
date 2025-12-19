@@ -1,9 +1,14 @@
 import { Link, Outlet } from "react-router-dom";
+import { Building2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { LogoMark } from "@/features/misc/logo";
+import { useCollege } from "@/features/college";
 
 export function AuthLayout() {
+  const { collegeSlug } = useCollege();
+
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center bg-background">
       <div className="absolute inset-0 overflow-hidden">
@@ -38,6 +43,12 @@ export function AuthLayout() {
               <Link to="/">Return home</Link>
             </Button>
           </header>
+          {collegeSlug && (
+            <Badge variant="glass" className="w-fit flex items-center gap-2">
+              <Building2 className="h-3 w-3" />
+              {collegeSlug}
+            </Badge>
+          )}
           <main>
             <Outlet />
           </main>
