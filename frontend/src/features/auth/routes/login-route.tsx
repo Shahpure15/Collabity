@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { signInWithEmail, signInWithGoogle } from "@/lib/firebase";
+import { signInWithEmail } from "@/lib/firebase";
 import { verifyToken } from "@/lib/api";
 import { createUserProfile } from "@/lib/user-service";
 import { useCollege } from "@/features/college";
@@ -76,43 +76,7 @@ export function LoginRoute() {
     }
   });
 
-  const handleGoogleLogin = useCallback(async () => {
-    setAuthError(null);
-    setIsSubmitting(true);
-    try {
-      const userCredential = await signInWithGoogle();
-      
-      if (userCredential) {
-        // Ensure user profile exists in Firestore
-        await createUserProfile(userCredential.user.uid, {
-          email: userCredential.user.email!,
-          name: userCredential.user.displayName || undefined,
-          photoURL: userCredential.user.photoURL || undefined,
-          collegeSlug: collegeSlug || undefined,
-        });
-      }
-      
-      // Verify token with backend
-      try {
-        await verifyToken();
-        console.log("[auth] Backend verification successful");
-      } catch (backendError) {
-        console.warn("[auth] Backend verification failed:", backendError);
-        // Continue anyway - frontend auth succeeded
-      }
-      
-      navigate("/dashboard", { replace: true });
-    } catch (error) {
-      console.error("[auth] google login failed", error);
-      if (error instanceof Error) {
-        setAuthError(error.message);
-      } else {
-        setAuthError("Unable to sign in with Google at the moment.");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [navigate]);
+  // Google sign-in removed to enforce college email-only authentication
 
   return (
     <div className="relative">
@@ -159,9 +123,9 @@ export function LoginRoute() {
             <Link className="text-muted-foreground underline hover:text-primary" to="/auth/reset">
               Forgot password?
             </Link>
-            <span className="text-muted-foreground">
-              New here? <Link className="text-primary" to="/auth/register">Create account</Link>
-            </span>
+              <span className="text-muted-foreground">
+                New here? Use the <Link className="text-primary" to="/auth/email-link">Email link</Link> option to sign in.
+              </span>
           </div>
           {authError && <p className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{authError}</p>}
           <Button className="w-full" disabled={isSubmitting} size="lg" type="submit">
@@ -180,16 +144,7 @@ export function LoginRoute() {
             <span className="bg-white px-4 dark:bg-transparent">or</span>
             <span className="absolute inset-x-0 top-1/2 -z-10 h-px bg-border" />
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Button
-              className="w-full"
-              disabled={isSubmitting}
-              onClick={handleGoogleLogin}
-              type="button"
-              variant="outline"
-            >
-              <GoogleIcon className="mr-2 h-4 w-4" /> Google
-            </Button>
+          <div className="grid gap-3 sm:grid-cols-1">
             <Link to="/auth/email-link" className="w-full">
               <Button
                 className="w-full"
@@ -210,10 +165,4 @@ export function LoginRoute() {
   );
 }
 
-function GoogleIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24">
-      <path fill="#EA4335" d="M12 10.2v3.6h8.4c-.36 2.04-2.28 5.88-8.4 5.88a7.8 7.8 0 1 1 0-15.6c2.28 0 3.84.96 4.74 1.8l3.24-3.24C18.84.96 15.96 0 12 0 5.4 0 0 5.4 0 12s5.4 12 12 12c6.96 0 12-4.86 12-11.7 0-.78-.12-1.26-.24-1.8H12Z" />
-    </svg>
-  );
-}
+// Google sign-in removed to enforce college email only flow

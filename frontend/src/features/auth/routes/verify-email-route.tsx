@@ -3,13 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { isEmailLink, completeEmailLinkSignIn } from "@/lib/firebase";
-import { createUserProfile } from "@/lib/user-service";
+import { isEmailLink, completeEmailLinkSignIn, getFirebaseAuth } from "@/lib/firebase";
 import { useCollege } from "@/features/college";
 
 export function VerifyEmailRoute() {
   const navigate = useNavigate();
-  const { collegeSlug } = useCollege();
+  const { collegeSlug: detectedCollegeSlug } = useCollege();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [error, setError] = useState<string>("");
 
@@ -24,6 +23,11 @@ export function VerifyEmailRoute() {
 
       // Get email from localStorage (same device)
       let email = window.localStorage.getItem('emailForSignIn');
+      // Get college saved when link was requested (if present)
+      const storedCollege = window.localStorage.getItem('collegeForSignIn');
+
+      // Prefer stored college (same device). Fallback to detected college from context
+      const usedCollegeSlug = storedCollege || detectedCollegeSlug || null;
 
       // If not found, ask user to enter it
       if (!email) {
@@ -38,22 +42,62 @@ export function VerifyEmailRoute() {
       try {
         // Complete the sign-in
         const userCredential = await completeEmailLinkSignIn(email);
-        
-        // Create/update user profile
-        await createUserProfile(userCredential.user.uid, {
-          email: userCredential.user.email!,
-          name: userCredential.user.displayName || undefined,
-          photoURL: userCredential.user.photoURL || undefined,
-          collegeSlug: collegeSlug || undefined,
-        });
 
-        console.log("[auth] Email link sign-in successful");
-        setStatus("success");
+        // Validate email domain still matches the college stored/selected
+        try {
+          const domainValidation = await import("@/lib/email-validation");
+          const validation = domainValidation.validateEmailForCollege(
+            userCredential.user.email || email,
+            usedCollegeSlug
+          );
+          if (!validation.isValid) {
+            throw new Error(validation.error || "Email domain does not match selected college");
+          }
+        } catch (vErr) {
+          console.error("[auth] College domain validation failed after link click", vErr);
+          setStatus("error");
+          setError("Email domain does not match the selected college. Contact support.");
+          return;
+        }
 
-        // Redirect to dashboard after 2 seconds
-        setTimeout(() => {
-          navigate("/dashboard", { replace: true });
-        }, 2000);
+        // Notify backend to create/update user record (pass ID token)
+        try {
+          const auth = getFirebaseAuth();
+          const idToken = auth && auth.currentUser ? await auth.currentUser.getIdToken() : null;
+
+          if (!idToken) {
+            throw new Error("Missing ID token after sign-in");
+          }
+
+          const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+          const res = await fetch(`${apiBase}/api/auth/on-verify`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ collegeSlug: usedCollegeSlug }),
+          });
+
+          if (!res.ok) {
+            const payload = await res.json().catch(() => ({}));
+            throw new Error(payload.error || `Server returned ${res.status}`);
+          }
+
+          console.log("[auth] Backend on-verify successful");
+          setStatus("success");
+
+          // Redirect to dashboard after 2 seconds
+          setTimeout(() => {
+            navigate("/dashboard", { replace: true });
+          }, 2000);
+        } catch (netErr) {
+          console.error("[auth] Backend on-verify failed", netErr);
+          setStatus("error");
+          if (netErr instanceof Error) setError(netErr.message);
+          else setError("Failed to register user on server");
+          return;
+        }
       } catch (err) {
         console.error("[auth] Email link sign-in failed", err);
         setStatus("error");

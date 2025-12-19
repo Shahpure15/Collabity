@@ -63,6 +63,10 @@ export const router = createBrowserRouter([
     element: <VerifyEmailRoute />,
   },
   {
+    path: "/auth/verify",
+    element: <VerifyEmailRoute />,
+  },
+  {
     path: "/missing-college",
     element: <MissingCollegeRoute />,
   },

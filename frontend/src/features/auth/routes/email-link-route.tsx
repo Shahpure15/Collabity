@@ -8,6 +8,8 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { sendSignInLink } from "@/lib/firebase";
+import { useCollege } from "@/features/college";
+import { validateEmailForCollege } from "@/lib/email-validation";
 
 const emailLinkSchema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -16,6 +18,7 @@ const emailLinkSchema = z.object({
 type EmailLinkFormValues = z.infer<typeof emailLinkSchema>;
 
 export function EmailLinkRoute() {
+  const { collegeSlug } = useCollege();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +34,15 @@ export function EmailLinkRoute() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await sendSignInLink(values.email);
+      // Validate email domain for selected college before sending
+      const validation = validateEmailForCollege(values.email, collegeSlug);
+      if (!validation.isValid) {
+        setError(validation.error || "Email domain not allowed for this college");
+        setIsSubmitting(false);
+        return;
+      }
+
+      await sendSignInLink(values.email, collegeSlug || undefined);
       setSuccess(true);
       console.log("[auth] Sign-in link sent successfully");
     } catch (err) {
@@ -139,9 +150,6 @@ export function EmailLinkRoute() {
           <div className="flex justify-center gap-4 text-sm">
             <Link className="text-muted-foreground underline hover:text-primary" to="/auth/login">
               Sign in with password
-            </Link>
-            <Link className="text-muted-foreground underline hover:text-primary" to="/auth/register">
-              Create account
             </Link>
           </div>
         </div>

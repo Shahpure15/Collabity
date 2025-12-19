@@ -27,10 +27,9 @@ const COLLEGES: College[] = [
 interface CollegeSelectorModalProps {
   open: boolean;
   onClose: () => void;
-  mode: "login" | "register";
 }
 
-export function CollegeSelectorModal({ open, onClose, mode }: CollegeSelectorModalProps) {
+export function CollegeSelectorModal({ open, onClose }: CollegeSelectorModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredColleges = COLLEGES.filter(
@@ -41,15 +40,14 @@ export function CollegeSelectorModal({ open, onClose, mode }: CollegeSelectorMod
   );
 
   const handleSelectCollege = (slug: string) => {
-    const targetUrl = `https://${slug}.collabity.tech/auth/${mode}`;
-    
-    // Check if we're on localhost
+    const targetUrl = `https://${slug}.collabity.tech/auth/email-link`;
+
+    // Save override for localhost flows
     if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-      // For localhost, set override and navigate to local auth page
       localStorage.setItem("collabity_college_override", slug);
-      window.location.href = `/auth/${mode}`;
+      window.location.href = `/auth/email-link`;
     } else {
-      // For production, redirect to college subdomain
+      // For production, redirect to college subdomain's email-link route
       window.location.href = targetUrl;
     }
   };
@@ -60,7 +58,7 @@ export function CollegeSelectorModal({ open, onClose, mode }: CollegeSelectorMod
         <DialogHeader>
           <DialogTitle className="text-2xl font-display">Select Your College</DialogTitle>
           <DialogDescription>
-            Choose your institution to {mode === "login" ? "log in" : "create an account"}
+            Choose your institution to continue to the email sign-in flow
           </DialogDescription>
         </DialogHeader>
 

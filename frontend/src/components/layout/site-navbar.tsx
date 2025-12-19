@@ -26,7 +26,6 @@ export function SiteNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [showCollegeSelector, setShowCollegeSelector] = useState(false);
-  const [selectorMode, setSelectorMode] = useState<"login" | "register">("register");
 
   const handleAnchorClick = useCallback(
     (sectionId: string) => {
@@ -59,7 +58,6 @@ export function SiteNavbar() {
       <CollegeSelectorModal 
         open={showCollegeSelector} 
         onClose={() => setShowCollegeSelector(false)}
-        mode={selectorMode}
       />
       <header className="sticky top-0 z-50 border-b border-white/20 bg-white/70 backdrop-blur-xl transition-colors dark:border-white/10 dark:bg-slate-950/75">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -129,28 +127,14 @@ export function SiteNavbar() {
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => {
-                    if (hasCollege) {
-                      navigate("/auth/login");
-                    } else {
-                      setSelectorMode("login");
-                      setShowCollegeSelector(true);
-                    }
-                  }}
+                  onClick={() => setShowCollegeSelector(true)}
                 >
                   Log in
                 </Button>
                 <Button 
                   variant="gradient" 
                   size="sm"
-                  onClick={() => {
-                    if (hasCollege) {
-                      navigate("/auth/register");
-                    } else {
-                      setSelectorMode("register");
-                      setShowCollegeSelector(true);
-                    }
-                  }}
+                  onClick={() => setShowCollegeSelector(true)}
                 >
                   Join the beta
                 </Button>
@@ -159,6 +143,10 @@ export function SiteNavbar() {
           </div>
         </div>
       </header>
+      <CollegeSelectorModal 
+        open={showCollegeSelector} 
+        onClose={() => setShowCollegeSelector(false)}
+      />
 
       {/* Mobile Bottom Dock - Only show when authenticated */}
       {user && (

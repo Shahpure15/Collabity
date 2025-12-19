@@ -111,7 +111,7 @@ export async function resetPassword(email: string) {
 /**
  * Send a sign-in link to the user's email (passwordless authentication)
  */
-export async function sendSignInLink(email: string) {
+export async function sendSignInLink(email: string, collegeSlug?: string) {
   const instance = getFirebaseAuth();
   if (!instance) {
     throw new Error("Firebase config missing. Provide Vite env vars to enable auth.");
@@ -119,14 +119,17 @@ export async function sendSignInLink(email: string) {
 
   const actionCodeSettings = {
     // URL where users will be redirected after clicking the link
-    url: `${window.location.origin}/auth/verify-email`,
+    url: `${window.location.origin}/auth/verify`,
     handleCodeInApp: true,
   };
 
   await sendSignInLinkToEmail(instance, email, actionCodeSettings);
   
-  // Save email to localStorage so we can verify on the same device
+  // Save email and selected college to localStorage so we can verify on the same device
   window.localStorage.setItem('emailForSignIn', email);
+  if (collegeSlug) {
+    window.localStorage.setItem('collegeForSignIn', collegeSlug);
+  }
 }
 
 /**

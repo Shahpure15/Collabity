@@ -88,19 +88,15 @@ function HeroSection() {
   const { hasCollege } = useCollege();
   const navigate = useNavigate();
   const [showCollegeSelector, setShowCollegeSelector] = useState(false);
-  const [selectorMode, setSelectorMode] = useState<"login" | "register">("register");
 
   const handleCtaClick = () => {
     if (user) {
       navigate("/dashboard");
-    } else if (hasCollege) {
-      // On college subdomain, redirect directly to register
-      navigate("/auth/register");
-    } else {
-      // On root domain, show college selector
-      setSelectorMode("register");
-      setShowCollegeSelector(true);
+      return;
     }
+
+    // Unified entry: open college selector which leads to email-link flow
+    setShowCollegeSelector(true);
   };
 
   return (
@@ -108,7 +104,6 @@ function HeroSection() {
       <CollegeSelectorModal 
         open={showCollegeSelector} 
         onClose={() => setShowCollegeSelector(false)}
-        mode={selectorMode}
       />
       <section className="grid gap-10 md:grid-cols-[1.1fr_0.9fr] md:items-center">
       <div className="space-y-8">
@@ -279,30 +274,18 @@ function CallToAction() {
   const { hasCollege } = useCollege();
   const navigate = useNavigate();
   const [showCollegeSelector, setShowCollegeSelector] = useState(false);
-  const [selectorMode, setSelectorMode] = useState<"login" | "register">("register");
 
   const handleCtaClick = () => {
     if (user) {
       navigate("/dashboard");
-    } else if (hasCollege) {
-      // On college subdomain, redirect directly to register
-      navigate("/auth/register");
-    } else {
-      // On root domain, show college selector
-      setSelectorMode("register");
-      setShowCollegeSelector(true);
+      return;
     }
+    setShowCollegeSelector(true);
   };
 
   const handleLoginClick = () => {
-    if (hasCollege) {
-      // On college subdomain, redirect directly to login
-      navigate("/auth/login");
-    } else {
-      // On root domain, show college selector
-      setSelectorMode("login");
-      setShowCollegeSelector(true);
-    }
+    // Show selector and then navigate to email-link flow (password option shown on email page)
+    setShowCollegeSelector(true);
   };
 
   return (
@@ -310,7 +293,6 @@ function CallToAction() {
       <CollegeSelectorModal 
         open={showCollegeSelector} 
         onClose={() => setShowCollegeSelector(false)}
-        mode={selectorMode}
       />
       <section className="glass-panel relative overflow-hidden rounded-3xl p-10 text-center shadow-glass">
       <div className="absolute inset-0 bg-gradient-to-r from-sky-500/20 via-purple-500/20 to-indigo-500/20" />
@@ -324,10 +306,10 @@ function CallToAction() {
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <Button onClick={handleCtaClick} size="lg" variant="gradient">
-            {user ? "Go to Dashboard" : "Create your profile"}
+            {user ? "Go to Dashboard" : "Get started"}
           </Button>
           <Button onClick={handleLoginClick} size="lg" variant="glass">
-            I already have access
+            Password login (if you have one)
           </Button>
         </div>
       </div>
