@@ -1,12 +1,14 @@
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/features/auth/auth-context";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { useCollege } from "@/features/college";
 import { getLatestPosts, type FeedPost } from "@/lib/post-service";
 import { togglePostReaction } from "@/lib/post-reactions";
@@ -109,7 +111,7 @@ const suggestedCollaborators = [
 ];
 
 export function DashboardRoute() {
-  const { user, userProfile, loading } = useAuth();
+  const { user, userProfile, loading, isAdmin } = useAuth();
   const { collegeSlug } = useCollege();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -161,6 +163,31 @@ export function DashboardRoute() {
   if (!user) {
     navigate("/auth/login", { replace: true });
     return null;
+  }
+
+  // Admin panel
+  function AdminPanel() {
+    const navigate = useNavigate();
+
+    return (
+      <Card className="border border-border bg-white p-4">
+        <div className="mb-3">
+          <h3 className="text-sm font-semibold">Admin Panel</h3>
+          <p className="text-xs text-muted-foreground">Manage users and system settings</p>
+        </div>
+
+        <div className="space-y-2">
+          <Button
+            onClick={() => navigate("/admin/users")}
+            variant="outline"
+            className="w-full justify-start"
+          >
+            <Users className="w-4 h-4 mr-2" />
+            Edit Users
+          </Button>
+        </div>
+      </Card>
+    );
   }
 
   return (
@@ -225,6 +252,11 @@ export function DashboardRoute() {
               <Button className="mt-6 w-full" variant="outline" onClick={() => navigate(`/profile/${user.uid}`)}>
                 View profile
               </Button>
+              {isAdmin && (
+                <div className="mt-4">
+                  <AdminPanel />
+                </div>
+              )}
             </div>
           </Card>
 

@@ -13,6 +13,7 @@ import { DiscoverRoute } from "@/features/discover/routes/discover-route";
 import { ProfileRoute } from "@/features/profile/routes/profile-route";
 import { MissingCollegeRoute } from "@/features/college/routes/missing-college-route";
 import { NotFoundRoute } from "@/features/misc/routes/not-found-route";
+import { AdminUsersRoute } from "@/features/admin/routes/admin-users-route";
 
 export const router = createBrowserRouter([
   {
@@ -33,6 +34,10 @@ export const router = createBrowserRouter([
       {
         path: "profile/:userId",
         element: <ProfileRoute />,
+      },
+      {
+        path: "admin/users",
+        element: <AdminUsersRoute />,
       },
     ],
   },

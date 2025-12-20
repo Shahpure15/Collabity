@@ -10,18 +10,9 @@ interface College {
   location: string;
 }
 
-// Add your colleges here
+// For now only MIT AOe is enabled — we'll add others later
 const COLLEGES: College[] = [
   { slug: "mitaoe", name: "MIT Academy of Engineering", location: "Pune, Maharashtra" },
-  { slug: "vit", name: "Vellore Institute of Technology", location: "Vellore, Tamil Nadu" },
-  { slug: "iitmadras", name: "IIT Madras", location: "Chennai, Tamil Nadu" },
-  { slug: "iitbombay", name: "IIT Bombay", location: "Mumbai, Maharashtra" },
-  { slug: "bitspilani", name: "BITS Pilani", location: "Pilani, Rajasthan" },
-  { slug: "nit", name: "NIT Trichy", location: "Tiruchirappalli, Tamil Nadu" },
-  { slug: "dtu", name: "Delhi Technological University", location: "Delhi" },
-  { slug: "iisc", name: "IISc Bangalore", location: "Bangalore, Karnataka" },
-  { slug: "coep", name: "College of Engineering Pune", location: "Pune, Maharashtra" },
-  { slug: "pict", name: "Pune Institute of Computer Technology", location: "Pune, Maharashtra" },
 ];
 
 interface CollegeSelectorModalProps {
@@ -40,14 +31,14 @@ export function CollegeSelectorModal({ open, onClose }: CollegeSelectorModalProp
   );
 
   const handleSelectCollege = (slug: string) => {
-    const targetUrl = `https://${slug}.collabity.tech/auth/email-link`;
+    const targetUrl = `https://${slug}.collabity.tech/auth/register`;
 
     // Save override for localhost flows
     if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
       localStorage.setItem("collabity_college_override", slug);
-      window.location.href = `/auth/email-link`;
+      window.location.href = `/auth/register`;
     } else {
-      // For production, redirect to college subdomain's email-link route
+      // For production, redirect to college subdomain's register route
       window.location.href = targetUrl;
     }
   };
@@ -62,7 +53,7 @@ export function CollegeSelectorModal({ open, onClose }: CollegeSelectorModalProp
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+          <div className="space-y-4">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Mail, MapPin, Briefcase, Award, Link as LinkIcon, Loader2 } from "lucide-react";
+import { ArrowLeft, Mail, MapPin, Briefcase, Award, Link as LinkIcon, Loader2, CheckCircle, Trash2 } from "lucide-react";
+import { signOut } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/features/auth/auth-context";
 import { getUserProfile, connectWithUser, getConnectionsForUser } from "@/lib/user-service";
+import { getFirebaseAuth } from "@/lib/firebase";
 
 export function ProfileRoute() {
   const { userId } = useParams<{ userId: string }>();
@@ -46,6 +48,45 @@ export function ProfileRoute() {
       alert("Unable to connect. Please try again.");
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("Authentication required");
+      const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+      const auth = getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
+      
+      const res = await fetch(`${apiBase}/api/user/delete-account`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "" 
+        },
+      });
+      
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to delete account");
+      }
+      
+      // Sign out after successful deletion
+      await signOut(auth);
+    },
+    onSuccess: () => {
+      alert("Your account has been deleted successfully.");
+      navigate("/", { replace: true });
+    },
+    onError: (error) => {
+      console.error("Delete failed:", error);
+      alert(error instanceof Error ? error.message : "Unable to delete account. Please try again.");
+    },
+  });
+
+  const handleDeleteAccount = () => {
+    if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      deleteMutation.mutate();
+    }
+  };
 
   const isConnected = userId ? connectedUserIds.includes(userId) : false;
 
@@ -94,7 +135,12 @@ export function ProfileRoute() {
                   </Avatar>
                 </div>
                 <div className="text-center">
-                  <h1 className="text-xl font-bold sm:text-2xl">{profile.name}</h1>
+                  <div className="flex items-center justify-center gap-2">
+                    <h1 className="text-xl font-bold sm:text-2xl">{profile.name}</h1>
+                    {profile.verified && (
+                      <CheckCircle className="h-5 w-5 text-green-600 fill-green-100" title="Verified by admin" />
+                    )}
+                  </div>
                   <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{profile.headline}</p>
                 </div>
 
@@ -133,9 +179,20 @@ export function ProfileRoute() {
                   </Button>
                 )}
                 {isOwnProfile && (
-                  <Button className="mt-6 w-full" variant="outline">
-                    Edit Profile
-                  </Button>
+                  <div className="mt-6 space-y-2">
+                    <Button className="w-full" variant="outline">
+                      Edit Profile
+                    </Button>
+                    <Button 
+                      className="w-full" 
+                      variant="destructive"
+                      onClick={handleDeleteAccount}
+                      disabled={deleteMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {deleteMutation.isPending ? "Deleting..." : "Delete Account"}
+                    </Button>
+                  </div>
                 )}
               </div>
             </Card>

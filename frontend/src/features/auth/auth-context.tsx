@@ -9,6 +9,7 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   loading: boolean;
   refreshProfile: () => Promise<void>;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadUserProfile = async (uid: string) => {
@@ -43,13 +45,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
-      
+
       if (firebaseUser) {
+        const isAdminEmail = firebaseUser.email?.toLowerCase() === "admin@mitaoe.ac.in";
+        setIsAdmin(isAdminEmail);
         await loadUserProfile(firebaseUser.uid);
       } else {
+        setIsAdmin(false);
         setUserProfile(null);
       }
-      
+
       setLoading(false);
     });
 
@@ -57,7 +62,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, loading, refreshProfile }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        userProfile,
+        loading,
+        refreshProfile,
+        isAdmin,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

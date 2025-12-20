@@ -16,6 +16,7 @@ export interface UserProfile {
   certifications: Certification[];
   currentFocus: string;
   bio: string;
+  verified?: boolean;
   links: Array<{
     label: string;
     url: string;

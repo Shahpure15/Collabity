@@ -8,7 +8,9 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signInWithEmail } from "@/lib/firebase";
+import { useAuth } from "@/features/auth/auth-context";
 import { verifyToken } from "@/lib/api";
+import { getUserProfile } from "@/lib/user-service";
 import { createUserProfile } from "@/lib/user-service";
 import { useCollege } from "@/features/college";
 import { validateEmailForCollege } from "@/lib/email-validation";
@@ -24,6 +26,8 @@ export function LoginRoute() {
   const navigate = useNavigate();  const { collegeSlug } = useCollege();  const [authError, setAuthError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const auth = useAuth();
+
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -36,6 +40,7 @@ export function LoginRoute() {
     setAuthError(null);
     setIsSubmitting(true);
     try {
+      // Admin shortcut: username 'admin' and password 'Adminmax'
       // Validate email domain for college
       const emailValidation = validateEmailForCollege(values.email, collegeSlug);
       if (!emailValidation.isValid) {
@@ -62,7 +67,18 @@ export function LoginRoute() {
         console.warn("[auth] Backend verification failed:", backendError);
         // Continue anyway - frontend auth succeeded
       }
-      
+      // After login, check if user has a redirectUrl set in profile
+      try {
+        const profile = await getUserProfile(userCredential.user.uid);
+        const redirectUrl = profile?.redirectUrl;
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+          return;
+        }
+      } catch (err) {
+        // ignore
+      }
+
       navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error("[auth] login failed", error);
